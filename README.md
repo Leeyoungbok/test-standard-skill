@@ -270,9 +270,20 @@ Claude Desktop의 MCP 설정 파일 (`~/Library/Application Support/Claude/claud
 
 Claude Desktop을 재시작하면 MCP 도구가 활성화됩니다.
 
-### Kiro CLI (AWS)에서 설정
+### MCP 클라이언트 설정 (수동)
 
-Kiro CLI의 MCP 설정 파일 (`~/.kiro/settings/mcp.json`)에 추가:
+자동 설치 스크립트가 다음 MCP 클라이언트를 자동으로 감지하고 설정합니다:
+
+#### 지원하는 MCP 클라이언트
+
+- ✅ **Kiro CLI** (AWS)
+- ✅ **Claude Desktop** (Anthropic)
+- ✅ **VS Code** (MCP 확장 설치 필요)
+- ✅ **기타 MCP 프로토콜 지원 클라이언트**
+
+#### Kiro CLI
+
+**설정 파일**: `~/.kiro/settings/mcp.json`
 
 ```json
 {
@@ -289,34 +300,72 @@ Kiro CLI의 MCP 설정 파일 (`~/.kiro/settings/mcp.json`)에 추가:
 }
 ```
 
-**주의**: `~/Documents/dev/test-standard-mcp`를 실제 클론한 경로로 변경하세요.
-
-**설정 후 Kiro CLI 재시작:**
-
+**재시작**:
 ```bash
-# 현재 세션 종료
 /quit
-
-# Kiro CLI 재시작
 kiro-cli chat
-
-# MCP 도구 확인
-# Kiro와 대화하며 "test-standard-mcp 도구를 사용해서..." 요청
 ```
+
+#### Claude Desktop
+
+**설정 파일**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "test-standard-mcp": {
+      "command": "node",
+      "args": ["~/Documents/dev/test-standard-mcp/index.js"]
+    }
+  }
+}
+```
+
+**재시작**: Claude Desktop 앱 재시작
+
+#### VS Code
+
+**설정 파일**: VS Code `settings.json`
+
+```json
+{
+  "mcp.servers": {
+    "test-standard-mcp": {
+      "command": "node",
+      "args": ["~/Documents/dev/test-standard-mcp/index.js"]
+    }
+  }
+}
+```
+
+**재시작**: VS Code 재시작
+
+#### 기타 MCP 클라이언트
+
+MCP 프로토콜을 지원하는 모든 클라이언트에서 사용 가능합니다. 기본 설정:
+
+```json
+{
+  "command": "node",
+  "args": ["~/Documents/dev/test-standard-mcp/index.js"]
+}
+```
+
+**주의**: `~/Documents/dev/test-standard-mcp`를 실제 클론한 경로로 변경하세요
 
 ---
 
 ## 사용법
 
-### Claude Code에서 사용
+### MCP 클라이언트에서 사용
 
-Claude Code와 대화하며 테스트 생성을 요청합니다:
+MCP 클라이언트(Kiro CLI, Claude Desktop, VS Code 등)와 대화하며 테스트 생성을 요청합니다:
 
 ```
 사용자: CommonServiceImpl에 대한 단위 테스트를 생성해줘.
 자동 검증도 함께 수행해줘.
 
-Claude: generate_unit_test 도구를 사용하여 테스트를 생성하겠습니다.
+MCP 클라이언트: generate_unit_test 도구를 사용하여 테스트를 생성하겠습니다.
 
 [도구 실행 중...]
 
@@ -332,9 +381,9 @@ Claude: generate_unit_test 도구를 사용하여 테스트를 생성하겠습�
 **Serena MCP를 사용하면 정규식 대신 정확한 타입 분석을 통해 완벽한 테스트를 생성**할 수 있습니다.
 
 #### MCP 클라이언트 호환성:
-- ✅ **Claude Code** (Anthropic)
-- ✅ **Amazon Q** (AWS)
-- ✅ **VS Code + MCP 확장**
+- ✅ **Kiro CLI** (AWS)
+- ✅ **Claude Desktop** (Anthropic)
+- ✅ **VS Code** (MCP 확장)
 - ✅ **기타 MCP 프로토콜 지원 클라이언트**
 
 #### 워크플로우:
@@ -342,7 +391,7 @@ Claude: generate_unit_test 도구를 사용하여 테스트를 생성하겠습�
 ```
 사용자: CommonServiceImpl에 대한 완벽한 테스트를 생성해줘.
 
-MCP 클라이언트 (Claude Code/Amazon Q/etc 내부 동작):
+MCP 클라이언트 내부 동작:
 1. Serena MCP의 find_symbol로 CommonServiceImpl 분석
 2. 분석 결과를 Test Standard MCP의 generate_unit_test에 전달
 3. 정확한 타입 정보로 완벽한 테스트 생성
@@ -543,10 +592,10 @@ echo '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"generate_u
 ### 예제 1: 새로운 서비스의 테스트 생성
 
 ```bash
-# Claude Code에서
+# MCP 클라이언트에서
 사용자: PlanshopServiceImpl에 대한 단위 테스트를 생성하고 검증해줘
 
-Claude: [generate_unit_test 도구 실행]
+MCP 클라이언트: [generate_unit_test 도구 실행]
 ```
 
 **결과:**
@@ -560,7 +609,7 @@ Claude: [generate_unit_test 도구 실행]
 ```bash
 사용자: DisplayCornerServiceTest의 문제를 찾아서 자동으로 수정해줘
 
-Claude: [validate_test 도구 실행]
+MCP 클라이언트: [validate_test 도구 실행]
 ```
 
 **결과:**
@@ -573,7 +622,7 @@ Claude: [validate_test 도구 실행]
 ```bash
 사용자: CommonServiceImplTest의 커버리지를 확인해줘
 
-Claude: [validate_test 도구 실행 (check_coverage: true)]
+MCP 클라이언트: [validate_test 도구 실행 (check_coverage: true)]
 ```
 
 **결과:**
