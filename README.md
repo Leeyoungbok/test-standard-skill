@@ -166,6 +166,24 @@ JaCoCo 리포트 자동 생성 및 커버리지 확인:
 
 ## 설치
 
+### 빠른 설치 (권장)
+
+**단 3줄로 설치 완료:**
+
+```bash
+git clone https://github.com/Leeyoungbok/test-standard-mcp.git
+cd test-standard-mcp
+./install.sh
+```
+
+설치 스크립트가 자동으로:
+- ✅ Node.js 의존성 설치
+- ✅ Kiro CLI 설정 자동 추가
+- ✅ Claude Desktop 설정 자동 추가
+- ✅ 백업 파일 생성
+
+**설치 후 MCP 클라이언트만 재시작하면 바로 사용 가능합니다!**
+
 ### 사전 준비: Serena MCP 설치
 
 Test Standard MCP를 사용하기 전에 **반드시 Serena MCP를 먼저 설치**해야 합니다.
@@ -192,19 +210,28 @@ pip install -e .
 
 ```bash
 # 1. 저장소 클론
-cd /Users/yb/Documents/dev/
+git clone https://github.com/Leeyoungbok/test-standard-mcp.git
+cd test-standard-mcp
+
+# 2. 자동 설치 스크립트 실행
+./install.sh
+
+# 3. MCP 클라이언트 재시작
+# - Kiro CLI: /quit 후 kiro-cli chat
+# - Claude Desktop: 앱 재시작
+```
+
+**수동 설치를 원하는 경우:**
+
+```bash
+# 1. 저장소 클론
 git clone https://github.com/Leeyoungbok/test-standard-mcp.git
 cd test-standard-mcp
 
 # 2. 의존성 설치
 npm install
 
-# 3. Claude Code에 MCP 추가
-claude mcp add test-standard-mcp node /Users/yb/Documents/dev/test-standard-mcp/index.js
-
-# 4. 설치 확인
-claude mcp list
-# ✅ test-standard-mcp: Connected
+# 3. MCP 클라이언트 설정 파일 수동 편집 (아래 섹션 참고)
 ```
 
 ### NPM 설치 (향후 지원 예정)
