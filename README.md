@@ -243,6 +243,38 @@ Claude Desktop의 MCP 설정 파일 (`~/Library/Application Support/Claude/claud
 
 Claude Desktop을 재시작하면 MCP 도구가 활성화됩니다.
 
+### Kiro CLI (AWS)에서 설정
+
+Kiro CLI의 MCP 설정 파일 (`~/.kiro/settings/mcp.json`)에 추가:
+
+```json
+{
+  "mcpServers": {
+    "test-standard-mcp": {
+      "command": "node",
+      "args": ["/Users/yb/Documents/dev/test-standard-mcp/index.js"],
+      "env": {},
+      "timeout": 120000,
+      "disabled": false,
+      "disabledTools": []
+    }
+  }
+}
+```
+
+**설정 후 Kiro CLI 재시작:**
+
+```bash
+# 현재 세션 종료
+/quit
+
+# Kiro CLI 재시작
+kiro-cli chat
+
+# MCP 도구 확인
+# Kiro와 대화하며 "test-standard-mcp 도구를 사용해서..." 요청
+```
+
 ---
 
 ## 사용법
