@@ -42,6 +42,14 @@ class TestStandardMCPServer {
     this.setupErrorHandling();
   }
 
+  /**
+   * 진행 상황 로그 출력 (stderr로 출력하여 클라이언트에서 볼 수 있음)
+   */
+  log(message, level = 'INFO') {
+    const timestamp = new Date().toISOString();
+    console.error(`[${timestamp}] [${level}] ${message}`);
+  }
+
   setupErrorHandling() {
     this.server.onerror = (error) => {
       console.error('[MCP Error]', error);
@@ -313,6 +321,8 @@ Serena 없이도 동작하지만, 정확도가 낮아집니다(정규식 기반 
       max_retries = 3,
     } = args;
 
+    this.log(`🚀 테스트 생성 시작: ${service_path}`);
+    
     const startTime = Date.now();
     const results = {
       service_path,
@@ -326,6 +336,7 @@ Serena 없이도 동작하지만, 정확도가 낮아집니다(정규식 기반 
 
     try {
       // Step 1: 서비스 분석
+      this.log(`📊 Step 1: 서비스 분석 중...`);
       results.steps.push({
         step: 1,
         name: 'analyze_service',
@@ -338,10 +349,12 @@ Serena 없이도 동작하지만, 정확도가 낮아집니다(정규식 기반 
       let analysis;
       if (serena_analysis) {
         // Serena MCP 분석 결과를 우선 사용
+        this.log(`✅ Serena MCP 분석 결과 사용`);
         analysis = this.parseSerenaAnalysis(serena_analysis, service_path);
         results.steps[0].message += ' ✅ Serena MCP로 정확한 타입 분석 완료';
       } else {
         // Fallback: 정규식 기반 파싱
+        this.log(`⚠️  정규식 기반 파싱 (Serena MCP 권장)`);
         const serviceCode = await readFile(path.join(project_root, service_path), 'utf-8');
         analysis = this.parseKotlinService(serviceCode, service_path);
         results.steps[0].message += ' ⚠️ 정규식 기반 파싱 (Serena MCP 권장)';
@@ -352,8 +365,10 @@ Serena 없이도 동작하지만, 정확도가 낮아집니다(정규식 기반 
         methods_found: analysis.methods.length,
         dependencies_found: analysis.dependencies.length,
       };
+      this.log(`✅ Step 1 완료: ${analysis.methods.length}개 메서드, ${analysis.dependencies.length}개 의존성 발견`);
 
       // Step 2: 테스트 코드 생성
+      this.log(`📝 Step 2: 테스트 코드 생성 중...`);
       results.steps.push({
         step: 2,
         name: 'generate_test_code',
@@ -370,9 +385,11 @@ Serena 없이도 동작하지만, 정확도가 낮아집니다(정규식 기반 
         test_file: results.test_path,
         test_methods_generated: analysis.methods.filter(m => !m.isPrivate).length * 2, // success + error
       };
+      this.log(`✅ Step 2 완료: ${results.test_path} 생성`);
 
       // Step 3: 검증 (옵션)
       if (validate) {
+        this.log(`🔍 Step 3: 테스트 검증 시작...`);
         const validationResult = await this.validateTestFile(
           project_root,
           results.test_path,
@@ -383,6 +400,7 @@ Serena 없이도 동작하지만, 정확도가 낮아집니다(정규식 기반 
       }
 
       const duration = Date.now() - startTime;
+      this.log(`🎉 테스트 생성 완료! (소요시간: ${duration}ms)`);
 
       return {
         content: [
@@ -397,6 +415,7 @@ Serena 없이도 동작하지만, 정확도가 낮아집니다(정규식 기반 
         ],
       };
     } catch (error) {
+      this.log(`❌ 테스트 생성 실패: ${error.message}`, 'ERROR');
       return {
         content: [
           {
@@ -490,6 +509,7 @@ Serena 없이도 동작하지만, 정확도가 낮아집니다(정규식 기반 
     const steps = [];
 
     // Step: 컴파일 검증
+    this.log(`🔨 컴파일 검증 시작...`);
     steps.push({
       step: 3,
       name: 'compile_validation',
@@ -502,6 +522,7 @@ Serena 없이도 동작하지만, 정확도가 낮아집니다(정규식 기반 
 
     while (!compileSuccess && compileRetries < maxRetries) {
       try {
+        this.log(`  ⏳ 컴파일 시도 ${compileRetries + 1}/${maxRetries}...`);
         await this.runGradleCompile(projectRoot, testPath);
         compileSuccess = true;
         steps[steps.length - 1].status = 'completed';
@@ -509,15 +530,23 @@ Serena 없이도 동작하지만, 정확도가 낮아집니다(정규식 기반 
           retries: compileRetries,
           message: '컴파일 성공',
         };
+        this.log(`  ✅ 컴파일 성공 (${compileRetries}번 재시도)`);
       } catch (error) {
         compileRetries++;
+        this.log(`  ⚠️  컴파일 실패 (${compileRetries}/${maxRetries}): ${error.message.substring(0, 100)}...`, 'WARN');
         if (compileRetries < maxRetries) {
           // 자동 수정 시도
+          this.log(`  🔧 자동 수정 시도 중...`);
           const fixed = await this.fixCompilationErrors(projectRoot, testPath, error);
-          if (!fixed) break;
+          if (!fixed) {
+            this.log(`  ❌ 자동 수정 실패`, 'ERROR');
+            break;
+          }
+          this.log(`  ✅ 자동 수정 완료, 재컴파일 시도`);
         } else {
           steps[steps.length - 1].status = 'failed';
           steps[steps.length - 1].error = error.message;
+          this.log(`  ❌ 컴파일 최종 실패`, 'ERROR');
           return { success: false, steps };
         }
       }
@@ -528,6 +557,7 @@ Serena 없이도 동작하지만, 정확도가 낮아집니다(정규식 기반 
     }
 
     // Step: 테스트 실행
+    this.log(`🧪 테스트 실행 시작...`);
     steps.push({
       step: 4,
       name: 'test_execution',
@@ -540,6 +570,7 @@ Serena 없이도 동작하지만, 정확도가 낮아집니다(정규식 기반 
 
     while (!testSuccess && testRetries < maxRetries) {
       try {
+        this.log(`  ⏳ 테스트 실행 시도 ${testRetries + 1}/${maxRetries}...`);
         const testResult = await this.runGradleTest(projectRoot, testPath);
         testSuccess = true;
         steps[steps.length - 1].status = 'completed';
@@ -548,15 +579,23 @@ Serena 없이도 동작하지만, 정확도가 낮아집니다(정규식 기반 
           passed_tests: testResult.passed,
           failed_tests: testResult.failed,
         };
+        this.log(`  ✅ 테스트 성공 (통과: ${testResult.passed}, 실패: ${testResult.failed})`);
       } catch (error) {
         testRetries++;
+        this.log(`  ⚠️  테스트 실패 (${testRetries}/${maxRetries}): ${error.message.substring(0, 100)}...`, 'WARN');
         if (testRetries < maxRetries) {
           // 자동 수정 시도
+          this.log(`  🔧 자동 수정 시도 중...`);
           const fixed = await this.fixTestFailures(projectRoot, testPath, error);
-          if (!fixed) break;
+          if (!fixed) {
+            this.log(`  ❌ 자동 수정 실패`, 'ERROR');
+            break;
+          }
+          this.log(`  ✅ 자동 수정 완료, 재테스트 시도`);
         } else {
           steps[steps.length - 1].status = 'failed';
           steps[steps.length - 1].error = error.message;
+          this.log(`  ❌ 테스트 최종 실패`, 'ERROR');
           return { success: false, steps };
         }
       }
