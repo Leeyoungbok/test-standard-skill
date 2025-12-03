@@ -186,17 +186,32 @@ pip install -e .
 
 자세한 내용은 [DEPLOYMENT.md - Serena MCP 설치](./DEPLOYMENT.md#필수-의존성-serena-mcp-설치)를 참고하세요.
 
-### 전역 설치 (권장)
+### Git 클론 설치 (권장)
+
+**가장 간단하고 즉시 사용 가능한 방법입니다:**
 
 ```bash
-npm install -g @oliveyoung/test-standard-mcp
+# 1. 저장소 클론
+cd /Users/yb/Documents/dev/
+git clone https://github.com/Leeyoungbok/test-standard-mcp.git
+cd test-standard-mcp
+
+# 2. 의존성 설치
+npm install
+
+# 3. Claude Code에 MCP 추가
+claude mcp add test-standard-mcp node /Users/yb/Documents/dev/test-standard-mcp/index.js
+
+# 4. 설치 확인
+claude mcp list
+# ✅ test-standard-mcp: Connected
 ```
 
-### 로컬 프로젝트에 설치
+### NPM 설치 (향후 지원 예정)
 
 ```bash
-cd /path/to/your/project
-npm install --save-dev @oliveyoung/test-standard-mcp
+# NPM 패키지로 배포 후 사용 가능
+npm install -g @oliveyoung/test-standard-mcp
 ```
 
 ### Claude Desktop에서 설정
