@@ -98,6 +98,52 @@ Oliveyoung Discovery 프로젝트의 테스트 표준을 자동 적용합니다:
 - Given-When-Then 구조
 - 한글 테스트 메서드명
 - @Description 어노테이션
+
+### 4. 프로젝트별 패키지 구조 자동 감지 (NEW!)
+
+프로젝트마다 다른 패키지 구조를 자동으로 감지하여 정확한 import를 생성합니다:
+
+```kotlin
+// oliveyoung-discovery 프로젝트
+import com.oliveyoung.domain.service.common.CacheService
+import com.oliveyoung.domain.service.display.DisplayCategoryService
+import com.oliveyoung.domain.util.CurationWebClientV2
+
+// display-worker 프로젝트
+import com.oliveyoung.domain.service.cache.CacheService
+import com.oliveyoung.domain.service.displaycategory.DisplayCategoryService
+import com.oliveyoung.domain.webclient.curation.CurationWebClientV2
+```
+
+**자동 감지 항목:**
+- ✅ CacheService: `service.common` vs `service.cache`
+- ✅ DisplayCategoryService: `service.display` vs `service.displaycategory`
+- ✅ GoodsSummaryViewService: `service.goods` vs `service.goods.view`
+- ✅ WebClient 클래스: `util` vs `webclient` 패키지
+
+### 5. @SpringBootConfiguration 자동 처리 (NEW!)
+
+프로젝트에 @SpringBootConfiguration이 없으면 순수 MockK 테스트로 자동 전환합니다:
+
+```kotlin
+// @SpringBootConfiguration이 있는 경우
+@SpringBootTest
+@ExtendWith(MockKExtension::class)
+class HomePersonalV2ServiceImplTest { ... }
+
+// @SpringBootConfiguration이 없는 경우 (자동 감지)
+@ExtendWith(MockKExtension::class)  // @SpringBootTest 제거
+class HomePersonalV2ServiceImplTest {
+    @InjectMockKs  // 자동 의존성 주입
+    private lateinit var homePersonalV2Service: HomePersonalV2ServiceImpl
+    ...
+}
+```
+
+**장점:**
+- ✅ Spring 컨텍스트 로딩 오류 방지
+- ✅ 더 빠른 테스트 실행 속도
+- ✅ 프로젝트 설정에 구애받지 않음
 - 타입 안정성 보장
 - MockK 베스트 프랙티스
 

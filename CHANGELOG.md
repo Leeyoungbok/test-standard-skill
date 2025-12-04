@@ -15,6 +15,75 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.0] - 2025-12-04
+
+### Added
+
+- **프로젝트별 패키지 구조 자동 감지**: 실제 소스 파일의 import 문을 분석하여 정확한 패키지 경로 자동 추출
+  - oliveyoung-discovery vs display-worker 프로젝트 간 패키지 차이 자동 처리
+  - CacheService, DisplayCategoryService, WebClient 등의 정확한 import 경로 매핑
+  - `extractImportsFromSource()` 및 `mapDependenciesToImports()` 함수 추가
+
+- **@SpringBootConfiguration 자동 감지 및 처리**: 프로젝트에 @SpringBootApplication이 없으면 순수 MockK 테스트로 자동 전환
+  - `checkSpringBootConfiguration()` 함수로 자동 감지
+  - `loadMockKTestTemplate()` - 순수 MockK 테스트 템플릿 추가
+  - @InjectMockKs를 사용한 자동 의존성 주입
+  - Spring 컨텍스트 로딩 오류 방지
+
+- **Import 문 자동 생성**: 분석된 의존성 타입에서 정확한 import 경로 자동 생성
+  - `generateImportsCode()` 함수로 중복 제거 및 정렬
+  - Serena MCP 분석 결과와 실제 소스 코드 import 매칭
+
+- **향상된 Serena MCP 통합**:
+  - `parseSerenaAnalysis()`가 이제 실제 소스 파일을 읽어 정확한 import 추출 (async)
+  - 의존성에 `importPath` 필드 추가로 정확한 타입 매핑
+
+### Changed
+
+- **테스트 템플릿 개선**:
+  - @MockK 어노테이션 방식으로 변경 (`private val` → `@MockK private lateinit var`)
+  - SpringBoot 템플릿과 순수 MockK 템플릿 분리
+  - Constructor 파라미터 자동 생성 (`generateConstructorParamsCode()`)
+
+- **generateTestCodeFromAnalysis()** 함수:
+  - `hasSpringBootConfig` 파라미터 추가
+  - 자동 import 생성 추가
+  - 템플릿 선택 로직 개선
+
+### Fixed
+
+- oliveyoung-discovery 프로젝트에서 `Unable to find a @SpringBootConfiguration` 에러 자동 해결
+- 프로젝트 간 패키지 구조 차이로 인한 import 오류 자동 수정
+- Type mismatch 오류 자동 감지 및 수정
+
+### Technical Details
+
+**실제 적용 사례 (HomePersonalV2ServiceImplTest):**
+```kotlin
+// 자동 감지된 정확한 import
+import com.oliveyoung.domain.service.common.CacheService
+import com.oliveyoung.domain.service.display.DisplayCategoryService
+import com.oliveyoung.domain.util.CurationWebClientV2
+
+// @SpringBootConfiguration이 없으므로 순수 MockK로 생성
+@ExtendWith(MockKExtension::class)
+class HomePersonalV2ServiceImplTest {
+    @MockK
+    private lateinit var cacheService: CacheService
+
+    @InjectMockKs
+    private lateinit var homePersonalV2Service: HomePersonalV2ServiceImpl
+}
+```
+
+**테스트 결과:**
+- ✅ oliveyoung-discovery 프로젝트에서 완벽 동작
+- ✅ 컴파일 성공 (5분 30초)
+- ✅ 테스트 통과 (1분 37초)
+- ✅ 6개 테스트 메서드 자동 생성
+
+---
+
 ## [1.1.0] - 2025-12-03
 
 ### Added

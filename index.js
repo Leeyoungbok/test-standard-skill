@@ -350,7 +350,7 @@ Serena 없이도 동작하지만, 정확도가 낮아집니다(정규식 기반 
       if (serena_analysis) {
         // Serena MCP 분석 결과를 우선 사용
         this.log(`✅ Serena MCP 분석 결과 사용`);
-        analysis = this.parseSerenaAnalysis(serena_analysis, service_path);
+        analysis = await this.parseSerenaAnalysis(serena_analysis, service_path, project_root);
         results.steps[0].message += ' ✅ Serena MCP로 정확한 타입 분석 완료';
       } else {
         // Fallback: 정규식 기반 파싱
@@ -376,7 +376,11 @@ Serena 없이도 동작하지만, 정확도가 낮아집니다(정규식 기반 
         message: '테스트 코드 생성 중...',
       });
 
-      const testCode = this.generateTestCodeFromAnalysis(analysis);
+      // @SpringBootConfiguration 존재 여부 확인
+      const hasSpringBootConfig = await this.checkSpringBootConfiguration(project_root);
+      this.log(`  SpringBootConfiguration 존재: ${hasSpringBootConfig}`);
+
+      const testCode = this.generateTestCodeFromAnalysis(analysis, hasSpringBootConfig);
       const testFilePath = path.join(project_root, results.test_path);
       await writeFile(testFilePath, testCode, 'utf-8');
 
@@ -712,7 +716,7 @@ Serena 없이도 동작하지만, 정확도가 낮아집니다(정규식 기반 
   /**
    * Serena MCP 분석 결과를 파싱하여 내부 형식으로 변환
    */
-  parseSerenaAnalysis(serenaData, filePath) {
+  async parseSerenaAnalysis(serenaData, filePath, projectRoot) {
     // Serena MCP의 find_symbol 또는 get_symbols_overview 결과를 변환
     const packageMatch = filePath.match(/kotlin\/(.+)\//);
     const packageName = packageMatch
@@ -720,6 +724,11 @@ Serena 없이도 동작하지만, 정확도가 낮아집니다(정규식 기반 
       : 'com.oliveyoung.domain';
 
     const className = serenaData.name || this.extractClassNameFromPath(filePath);
+
+    // 실제 파일을 읽어서 정확한 import 경로 추출
+    const absolutePath = path.join(projectRoot, filePath);
+    const sourceCode = await readFile(absolutePath, 'utf-8');
+    const imports = this.extractImportsFromSource(sourceCode);
 
     // Serena 분석 결과에서 메서드 추출
     const methods = [];
@@ -752,13 +761,50 @@ Serena 없이도 동작하지만, 정확도가 낮아집니다(정규식 기반 
       });
     }
 
+    // Import 경로에서 정확한 타입 매핑
+    const dependenciesWithImports = this.mapDependenciesToImports(dependencies, imports);
+
     return {
       packageName,
       className,
-      imports: [], // Serena에서 제공하는 경우 추가 가능
-      dependencies,
+      imports,
+      dependencies: dependenciesWithImports,
       methods,
     };
+  }
+
+  /**
+   * 소스 코드에서 import 문 추출
+   */
+  extractImportsFromSource(sourceCode) {
+    const imports = [];
+    const lines = sourceCode.split('\n');
+
+    for (const line of lines) {
+      const importMatch = line.match(/import\s+([\w.]+)/);
+      if (importMatch) {
+        imports.push(importMatch[1]);
+      }
+    }
+
+    return imports;
+  }
+
+  /**
+   * 의존성 타입을 실제 import 경로와 매핑
+   */
+  mapDependenciesToImports(dependencies, imports) {
+    return dependencies.map(dep => {
+      // Import 목록에서 타입명과 매칭되는 경로 찾기
+      const matchingImport = imports.find(imp =>
+        imp.endsWith(`.${dep.type}`)
+      );
+
+      return {
+        ...dep,
+        importPath: matchingImport || null,
+      };
+    });
   }
 
   /**
@@ -868,19 +914,41 @@ Serena 없이도 동작하지만, 정확도가 낮아집니다(정규식 기반 
   }
 
   /**
+   * @SpringBootConfiguration 존재 여부 확인
+   */
+  async checkSpringBootConfiguration(projectRoot) {
+    try {
+      // @SpringBootApplication이 있는 파일 검색
+      const cmd = `cd "${projectRoot}" && find . -name "*.kt" -type f -exec grep -l "@SpringBootApplication" {} \\; | head -1`;
+      const { stdout } = await execAsync(cmd);
+      return stdout.trim().length > 0;
+    } catch (error) {
+      this.log(`  @SpringBootConfiguration 확인 실패, 순수 MockK 사용: ${error.message}`, 'WARN');
+      return false;
+    }
+  }
+
+  /**
    * 테스트 코드 생성
    */
-  generateTestCodeFromAnalysis(analysis) {
-    const template = this.loadServiceTestTemplate();
+  generateTestCodeFromAnalysis(analysis, hasSpringBootConfig = true) {
+    const template = hasSpringBootConfig
+      ? this.loadServiceTestTemplate()
+      : this.loadMockKTestTemplate();
 
     // camelCase 변환 (첫 글자만 소문자)
     const serviceNameLowercase = analysis.className.charAt(0).toLowerCase() + analysis.className.slice(1);
 
+    // Import 문 생성
+    const imports = this.generateImportsCode(analysis);
+
     let testCode = template
+      .replace(/{{Imports}}/g, imports)
       .replace(/{{PackageName}}/g, analysis.packageName)
       .replace(/{{ServiceName}}/g, analysis.className)
       .replace(/{{ServiceName\|lowercase}}/g, serviceNameLowercase)
-      .replace(/{{Dependencies}}/g, this.generateDependencyMocksCode(analysis.dependencies));
+      .replace(/{{Dependencies}}/g, this.generateDependencyMocksCode(analysis.dependencies))
+      .replace(/{{ConstructorParams}}/g, this.generateConstructorParamsCode(analysis.dependencies));
 
     // 테스트 메서드 생성
     let testMethods = '';
@@ -896,12 +964,39 @@ Serena 없이도 동작하지만, 정확도가 낮아집니다(정규식 기반 
   }
 
   /**
+   * Import 문 생성
+   */
+  generateImportsCode(analysis) {
+    const uniqueImports = new Set();
+
+    // 의존성 타입의 import
+    for (const dep of analysis.dependencies) {
+      if (dep.importPath) {
+        uniqueImports.add(dep.importPath);
+      }
+    }
+
+    return Array.from(uniqueImports)
+      .map(imp => `import ${imp}`)
+      .join('\n');
+  }
+
+  /**
+   * Constructor 파라미터 코드 생성
+   */
+  generateConstructorParamsCode(dependencies) {
+    return dependencies.map(dep =>
+      `            ${dep.name} = ${dep.name}`
+    ).join(',\n');
+  }
+
+  /**
    * 의존성 Mock 코드 생성
    */
   generateDependencyMocksCode(dependencies) {
     return dependencies.map(dep =>
-      `    private val ${dep.name}: ${dep.type} = mockk()`
-    ).join('\n');
+      `    @MockK\n    private lateinit var ${dep.name}: ${dep.type}`
+    ).join('\n\n');
   }
 
   /**
@@ -941,48 +1036,71 @@ Serena 없이도 동작하지만, 정확도가 낮아집니다(정규식 기반 
   }
 
   /**
-   * 서비스 테스트 템플릿 로드
+   * 서비스 테스트 템플릿 로드 (SpringBoot)
    */
   loadServiceTestTemplate() {
     return `package {{PackageName}}
 
-import com.oliveyoung.domain.configuration.property.EncryptedPropertyConfig
-import com.oliveyoung.domain.configuration.property.PropertyProvider
+{{Imports}}
 import io.mockk.*
 import io.mockk.junit5.MockKExtension
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.context.annotation.Description
-import org.springframework.test.context.ContextConfiguration
-import org.springframework.test.context.TestConstructor
 
 @SpringBootTest
-@ContextConfiguration(
-    classes = [
-        EncryptedPropertyConfig::class,
-        PropertyProvider::class
-    ]
-)
-@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 @ExtendWith(MockKExtension::class)
 class {{ServiceName}}Test {
+
 {{Dependencies}}
 
-    private val {{ServiceName|lowercase}}Impl: {{ServiceName}} = spyk(
-        {{ServiceName}}(
-            // TODO: 의존성 주입
-        ), recordPrivateCalls = true
-    )
+    private lateinit var {{ServiceName|lowercase}}: {{ServiceName}}
 
     @BeforeEach
-    fun setup() {
+    fun setUp() {
         MockKAnnotations.init(this)
+        {{ServiceName|lowercase}} = {{ServiceName}}(
+{{ConstructorParams}}
+        )
     }
 
-    @AfterEach
-    fun afterTests() {
-        unmockkAll()
+{{TestMethods}}
+}
+`;
+  }
+
+  /**
+   * 순수 MockK 테스트 템플릿 로드
+   */
+  loadMockKTestTemplate() {
+    return `package {{PackageName}}
+
+{{Imports}}
+import io.mockk.MockKAnnotations
+import io.mockk.every
+import io.mockk.impl.annotations.InjectMockKs
+import io.mockk.impl.annotations.MockK
+import io.mockk.junit5.MockKExtension
+import io.mockk.mockk
+import io.mockk.verify
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+
+/**
+ * {{ServiceName}} 테스트
+ */
+@ExtendWith(MockKExtension::class)
+class {{ServiceName}}Test {
+
+{{Dependencies}}
+
+    @InjectMockKs
+    private lateinit var {{ServiceName|lowercase}}: {{ServiceName}}
+
+    @BeforeEach
+    fun setUp() {
+        MockKAnnotations.init(this)
     }
 
 {{TestMethods}}
