@@ -14,6 +14,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `continue_on_error` 옵션으로 에러 발생 시 계속 처리 가능
   - 소요 시간 및 결과 요약 자동 생성
 
+- **타임아웃 기능** (무한 대기 방지)
+  - 컴파일: 15분 타임아웃
+  - 테스트 실행: 10분 타임아웃
+  - 커버리지 생성: 10분 타임아웃
+  - SpringBootConfiguration 체크: 1분 타임아웃
+  - 타임아웃 발생 시 명확한 에러 메시지 제공
+
+- **Private 메서드 필터링**
+  - `parseKotlinService`에서 `private fun` 메서드 자동 감지
+  - private 메서드는 테스트 생성 대상에서 제외
+  - Serena MCP 분석 결과에서도 private 메서드 필터링
+
 ### Improved
 - **Gradle 빌드 속도 대폭 개선** (약 40-50% 단축)
   - `--parallel`: 병렬 빌드 활성화
@@ -22,11 +34,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Gradle Daemon 사용 (`--no-daemon` 제거)
   - 예상 효과: 5분 → 2-3분으로 단축
 
+- **컴파일 에러 자동 수정 대폭 강화**
+  - 에러 개수 제한: 50개 이상 시 중단하고 사용자에게 알림
+  - 에러 타입 분류: UNRESOLVED_REFERENCE, TYPE_MISMATCH, MISSING_IMPORT 등
+  - Missing Import 자동 추가 (Service, Dto 패턴 인식)
+  - Type mismatch 확장: Unit→Long, String→Boolean, Int→Long
+  - MockK relaxed 설정 자동 추가 (no answer found 에러 방지)
+  - Unresolved reference 감지 및 사용자 알림
+  - 수정 항목 개수 로깅으로 투명성 제공
+
+- **진행 상황 리포팅 개선**
+  - 각 단계별 소요 시간 측정 및 표시
+  - 컴파일/테스트 실행 시간 초 단위 표시
+  - 전체 검증 프로세스 총 소요 시간 제공
+  - 재시도 횟수와 소요 시간 함께 표시
+  - 에러 분석 시 발견된 에러 개수 표시
+
+### Fixed
+- 무한 대기 문제 해결 (타임아웃 추가)
+- 100개 이상 컴파일 에러 시 무응답 문제 해결 (50개 제한)
+- Private 메서드 테스트 생성으로 인한 불필요한 테스트 제거
+
 ### Planned
 - AI 기반 Mock 데이터 생성
 - 커버리지 기반 자동 테스트 추가
 - 컨트롤러 테스트 템플릿 추가
-- 더 정교한 자동 수정 로직
+- 메서드 시그니처 더 정확한 파싱
 
 ---
 

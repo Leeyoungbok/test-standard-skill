@@ -203,7 +203,31 @@ class HomePersonalV2ServiceImplTest {
 - 타입 안정성 보장
 - MockK 베스트 프랙티스
 
-### 4. 커버리지 확인
+### 6. 안정성 및 성능 개선 (NEW!)
+
+**무한 대기 방지 (타임아웃)**
+- 컴파일: 15분 타임아웃
+- 테스트 실행: 10분 타임아웃
+- 커버리지 생성: 10분 타임아웃
+- 타임아웃 발생 시 명확한 에러 메시지
+
+**컴파일 에러 자동 수정 강화**
+- ✅ 에러 개수 제한: 50개 이상 시 자동 중단 및 알림
+- ✅ Missing Import 자동 추가 (Service, Dto 패턴 인식)
+- ✅ Type mismatch 자동 수정: Unit→Long, String→Boolean, Int→Long
+- ✅ MockK relaxed 설정 자동 추가 (no answer found 에러 방지)
+- ✅ Unresolved reference 감지 및 사용자 알림
+
+**Private 메서드 자동 필터링**
+- private 메서드는 테스트 생성 대상에서 자동 제외
+- 불필요한 테스트 코드 생성 방지
+
+**진행 상황 상세 리포팅**
+- 각 단계별 소요 시간 측정 (컴파일, 테스트, 전체)
+- 에러 개수 및 수정 항목 개수 표시
+- 재시도 횟수와 소요 시간 함께 표시
+
+### 7. 커버리지 확인
 
 JaCoCo 리포트 자동 생성 및 커버리지 확인:
 

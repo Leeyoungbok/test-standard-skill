@@ -17,6 +17,30 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
+ * Timeout이 적용된 execAsync wrapper
+ * @param {string} cmd - 실행할 명령어
+ * @param {number} timeout - 타임아웃 (ms, 기본 10분)
+ * @returns {Promise<{stdout: string, stderr: string}>}
+ */
+async function execWithTimeout(cmd, timeout = 600000) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(`Command timed out after ${timeout / 1000}s: ${cmd.substring(0, 100)}...`));
+    }, timeout);
+
+    execAsync(cmd)
+      .then((result) => {
+        clearTimeout(timer);
+        resolve(result);
+      })
+      .catch((error) => {
+        clearTimeout(timer);
+        reject(error);
+      });
+  });
+}
+
+/**
  * Oliveyoung Test Standard MCP Server
  * 테스트 코드 자동 생성 및 자가 검증 루프를 제공하는 MCP 서버
  */
@@ -671,9 +695,11 @@ service_paths: [
    */
   async validateTestFile(projectRoot, testPath, maxRetries) {
     const steps = [];
+    const startTime = Date.now();
 
     // Step: 컴파일 검증
     this.log(`🔨 컴파일 검증 시작...`);
+    const compileStartTime = Date.now();
     steps.push({
       step: 3,
       name: 'compile_validation',
@@ -689,12 +715,14 @@ service_paths: [
         this.log(`  ⏳ 컴파일 시도 ${compileRetries + 1}/${maxRetries}...`);
         await this.runGradleCompile(projectRoot, testPath);
         compileSuccess = true;
+        const compileDuration = ((Date.now() - compileStartTime) / 1000).toFixed(2);
         steps[steps.length - 1].status = 'completed';
         steps[steps.length - 1].result = {
           retries: compileRetries,
           message: '컴파일 성공',
+          duration_seconds: compileDuration,
         };
-        this.log(`  ✅ 컴파일 성공 (${compileRetries}번 재시도)`);
+        this.log(`  ✅ 컴파일 성공 (${compileRetries}번 재시도, ${compileDuration}초 소요)`);
       } catch (error) {
         compileRetries++;
         this.log(`  ⚠️  컴파일 실패 (${compileRetries}/${maxRetries}): ${error.message.substring(0, 100)}...`, 'WARN');
@@ -722,6 +750,7 @@ service_paths: [
 
     // Step: 테스트 실행
     this.log(`🧪 테스트 실행 시작...`);
+    const testStartTime = Date.now();
     steps.push({
       step: 4,
       name: 'test_execution',
@@ -737,13 +766,15 @@ service_paths: [
         this.log(`  ⏳ 테스트 실행 시도 ${testRetries + 1}/${maxRetries}...`);
         const testResult = await this.runGradleTest(projectRoot, testPath);
         testSuccess = true;
+        const testDuration = ((Date.now() - testStartTime) / 1000).toFixed(2);
         steps[steps.length - 1].status = 'completed';
         steps[steps.length - 1].result = {
           retries: testRetries,
           passed_tests: testResult.passed,
           failed_tests: testResult.failed,
+          duration_seconds: testDuration,
         };
-        this.log(`  ✅ 테스트 성공 (통과: ${testResult.passed}, 실패: ${testResult.failed})`);
+        this.log(`  ✅ 테스트 성공 (통과: ${testResult.passed}, 실패: ${testResult.failed}, ${testDuration}초 소요)`);
       } catch (error) {
         testRetries++;
         this.log(`  ⚠️  테스트 실패 (${testRetries}/${maxRetries}): ${error.message.substring(0, 100)}...`, 'WARN');
@@ -765,9 +796,13 @@ service_paths: [
       }
     }
 
+    const totalDuration = ((Date.now() - startTime) / 1000).toFixed(2);
+    this.log(`✅ 전체 검증 완료 (총 ${totalDuration}초 소요)`);
+
     return {
       success: testSuccess,
       steps,
+      total_duration_seconds: totalDuration,
     };
   }
 
@@ -783,7 +818,8 @@ service_paths: [
     // daemon은 기본 활성화 (--no-daemon 제거)
     const cmd = `cd "${projectRoot}" && JAVA_HOME=/usr/local/opt/openjdk@11/libexec/openjdk.jdk/Contents/Home ./gradlew :${module}:compileTestKotlin --parallel --build-cache --configuration-cache -x kaptKotlin -x kaptGenerateStubsKotlin -x kaptTestKotlin -x kaptGenerateStubsTestKotlin`;
 
-    const { stdout, stderr } = await execAsync(cmd);
+    this.log(`  컴파일 시작 (최대 15분 대기)...`);
+    const { stdout, stderr } = await execWithTimeout(cmd, 900000); // 15분 타임아웃
 
     if (stderr && stderr.includes('error:')) {
       throw new Error(`Compilation failed: ${stderr}`);
@@ -803,7 +839,8 @@ service_paths: [
     const cmd = `cd "${projectRoot}" && JAVA_HOME=/usr/local/opt/openjdk@11/libexec/openjdk.jdk/Contents/Home ./gradlew :${module}:test --tests "${testClassName}" --parallel --build-cache --configuration-cache -x kaptKotlin -x kaptGenerateStubsKotlin -x kaptTestKotlin -x kaptGenerateStubsTestKotlin`;
 
     try {
-      const { stdout, stderr } = await execAsync(cmd);
+      this.log(`  테스트 실행 시작 (최대 10분 대기)...`);
+      const { stdout, stderr } = await execWithTimeout(cmd, 600000); // 10분 타임아웃
 
       // 테스트 결과 파싱
       const passed = (stdout.match(/(\d+) passed/i) || [0, 0])[1];
@@ -820,33 +857,171 @@ service_paths: [
   }
 
   /**
-   * 컴파일 에러 자동 수정
+   * 컴파일 에러 분석 및 개수 체크
+   */
+  analyzeCompilationErrors(errorMessage) {
+    const errors = [];
+
+    // 에러 메시지를 줄 단위로 분리하여 "error:" 패턴 찾기
+    const lines = errorMessage.split('\n');
+    for (const line of lines) {
+      if (line.includes('error:')) {
+        errors.push({
+          line,
+          type: this.classifyError(line),
+        });
+      }
+    }
+
+    return errors;
+  }
+
+  /**
+   * 에러 타입 분류
+   */
+  classifyError(errorLine) {
+    if (errorLine.includes('Unresolved reference')) {
+      return 'UNRESOLVED_REFERENCE';
+    }
+    if (errorLine.includes('Type mismatch')) {
+      return 'TYPE_MISMATCH';
+    }
+    if (errorLine.includes('Unresolved import')) {
+      return 'MISSING_IMPORT';
+    }
+    if (errorLine.includes('No value passed for parameter')) {
+      return 'MISSING_PARAMETER';
+    }
+    return 'UNKNOWN';
+  }
+
+  /**
+   * 컴파일 에러 자동 수정 (대폭 강화)
    */
   async fixCompilationErrors(projectRoot, testPath, error) {
-    // 간단한 타입 불일치 수정 예시
-    // 실제 구현에서는 더 정교한 로직 필요
+    this.log(`  🔍 컴파일 에러 분석 중...`);
+
+    // 에러 개수 체크
+    const errors = this.analyzeCompilationErrors(error.message);
+    this.log(`  발견된 에러: ${errors.length}개`);
+
+    if (errors.length > 50) {
+      this.log(`  ⚠️  에러가 50개를 초과합니다 (${errors.length}개). 자동 수정이 불가능합니다.`, 'ERROR');
+      this.log(`  💡 Serena MCP로 정확한 분석을 먼저 수행하거나, 서비스 코드를 확인해주세요.`, 'WARN');
+      return false;
+    }
+
     const testCode = await readFile(path.join(projectRoot, testPath), 'utf-8');
-
     let modified = testCode;
-    let fixed = false;
+    let fixCount = 0;
 
-    // Unit → Long 수정
+    // 1. Missing Import 자동 추가
+    const missingImports = this.extractMissingImports(error.message);
+    if (missingImports.length > 0) {
+      this.log(`  🔧 Missing Import ${missingImports.length}개 추가 중...`);
+      for (const imp of missingImports) {
+        if (!modified.includes(`import ${imp}`)) {
+          // package 선언 다음 줄에 import 추가
+          modified = modified.replace(
+            /package\s+[\w.]+\n/,
+            (match) => `${match}\nimport ${imp}\n`
+          );
+          fixCount++;
+        }
+      }
+    }
+
+    // 2. Unit → Long 타입 불일치 수정
     if (error.message.includes('Unit but Long')) {
+      this.log(`  🔧 Unit → Long 타입 수정 중...`);
       modified = modified.replace(/returns Unit/g, 'returns 1L');
-      fixed = true;
+      fixCount++;
     }
 
-    // String → Boolean 수정
+    // 3. String → Boolean 타입 불일치 수정
     if (error.message.includes('String but Boolean')) {
+      this.log(`  🔧 String → Boolean 타입 수정 중...`);
       modified = modified.replace(/"Y"/g, 'true').replace(/"N"/g, 'false');
-      fixed = true;
+      fixCount++;
     }
 
-    if (fixed) {
+    // 4. Int → Long 타입 불일치 수정
+    if (error.message.includes('Int but Long')) {
+      this.log(`  🔧 Int → Long 타입 수정 중...`);
+      modified = modified.replace(/returns\s+(\d+)(?!L)/g, 'returns $1L');
+      fixCount++;
+    }
+
+    // 5. Unresolved reference 수정 (변수명 오타 추정)
+    const unresolvedRefs = this.extractUnresolvedReferences(error.message);
+    if (unresolvedRefs.length > 0 && unresolvedRefs.length <= 5) {
+      this.log(`  🔧 Unresolved reference ${unresolvedRefs.length}개 분석 중...`);
+      // 간단한 경우만 처리: 흔한 오타 패턴 (예: getCwd → getCurrentWorkingDirectory)
+      // 복잡한 경우는 사용자에게 알림
+      for (const ref of unresolvedRefs) {
+        this.log(`  ⚠️  Unresolved: ${ref} - 수동 확인 필요`, 'WARN');
+      }
+    }
+
+    // 6. MockK relaxed 설정 추가 (No answer found 에러 방지)
+    if (error.message.includes('no answer found') || error.message.includes('MockKException')) {
+      this.log(`  🔧 MockK relaxed 설정 추가 중...`);
+      modified = modified.replace(
+        /mockk<(\w+)>\(\)/g,
+        'mockk<$1>(relaxed = true)'
+      );
+      fixCount++;
+    }
+
+    if (fixCount > 0) {
+      this.log(`  ✅ ${fixCount}개 항목 자동 수정 완료`);
       await writeFile(path.join(projectRoot, testPath), modified, 'utf-8');
+      return true;
     }
 
-    return fixed;
+    this.log(`  ℹ️  자동 수정 가능한 에러가 없습니다.`, 'INFO');
+    return false;
+  }
+
+  /**
+   * Missing Import 추출
+   */
+  extractMissingImports(errorMessage) {
+    const imports = [];
+    const lines = errorMessage.split('\n');
+
+    for (const line of lines) {
+      // "Unresolved reference: ClassName" 패턴에서 클래스명 추출
+      const unresolvedMatch = line.match(/Unresolved reference:\s+(\w+)/);
+      if (unresolvedMatch) {
+        const className = unresolvedMatch[1];
+        // 흔한 패턴들에 대한 import 추정
+        if (className.includes('Service')) {
+          imports.push(`com.oliveyoung.domain.service.*.${className}`);
+        } else if (className.includes('Dto')) {
+          imports.push(`com.oliveyoung.domain.entity.*.dto.${className}`);
+        }
+      }
+    }
+
+    return imports;
+  }
+
+  /**
+   * Unresolved Reference 추출
+   */
+  extractUnresolvedReferences(errorMessage) {
+    const refs = [];
+    const lines = errorMessage.split('\n');
+
+    for (const line of lines) {
+      const match = line.match(/Unresolved reference:\s+(\w+)/);
+      if (match) {
+        refs.push(match[1]);
+      }
+    }
+
+    return [...new Set(refs)]; // 중복 제거
   }
 
   /**
@@ -867,7 +1042,8 @@ service_paths: [
     const cmd = `cd "${projectRoot}" && JAVA_HOME=/usr/local/opt/openjdk@11/libexec/openjdk.jdk/Contents/Home ./gradlew :${module}:jacocoTestReport --parallel --build-cache --configuration-cache -x kaptKotlin -x kaptGenerateStubsKotlin`;
 
     try {
-      await execAsync(cmd);
+      this.log(`  커버리지 리포트 생성 중 (최대 10분 대기)...`);
+      await execWithTimeout(cmd, 600000); // 10분 타임아웃
       return {
         success: true,
         report_path: `${module}/build/reports/jacoco/test/html/index.html`,
@@ -1058,16 +1234,17 @@ service_paths: [
       }
     }
 
-    // 메서드 추출 (간단한 버전)
+    // 메서드 추출 (private 메서드 감지 포함)
     const methods = [];
-    const methodRegex = /(override\s+)?fun\s+(\w+)\s*\(([\s\S]*?)\)\s*:\s*([\w<>?]+)/g;
+    const methodRegex = /(private\s+)?(override\s+)?fun\s+(\w+)\s*\(([\s\S]*?)\)\s*:\s*([\w<>?]+)/g;
     let match;
 
     while ((match = methodRegex.exec(code)) !== null) {
+      const isPrivate = !!match[1]; // 'private ' 키워드가 있는지 체크
       methods.push({
-        name: match[2],
-        returnType: match[4],
-        isPrivate: false, // 간단히 public으로 가정
+        name: match[3],
+        returnType: match[5],
+        isPrivate: isPrivate,
       });
     }
 
@@ -1087,7 +1264,7 @@ service_paths: [
     try {
       // @SpringBootApplication이 있는 파일 검색
       const cmd = `cd "${projectRoot}" && find . -name "*.kt" -type f -exec grep -l "@SpringBootApplication" {} \\; | head -1`;
-      const { stdout } = await execAsync(cmd);
+      const { stdout } = await execWithTimeout(cmd, 60000); // 1분 타임아웃
       return stdout.trim().length > 0;
     } catch (error) {
       this.log(`  @SpringBootConfiguration 확인 실패, 순수 MockK 사용: ${error.message}`, 'WARN');
