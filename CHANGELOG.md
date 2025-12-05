@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **배치 테스트 생성 기능** (`generate_batch_tests`): 여러 서비스 파일의 테스트를 한 번에 생성
+  - 진행 상황 실시간 표시 (`[1/5] 처리 중...`)
+  - 성공/실패 통계 자동 집계
+  - `continue_on_error` 옵션으로 에러 발생 시 계속 처리 가능
+  - 소요 시간 및 결과 요약 자동 생성
+
 ### Planned
 - AI 기반 Mock 데이터 생성
 - 커버리지 기반 자동 테스트 추가

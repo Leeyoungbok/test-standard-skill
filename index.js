@@ -176,6 +176,53 @@ Serena 없이도 동작하지만, 정확도가 낮아집니다(정규식 기반 
           },
         },
         {
+          name: 'generate_batch_tests',
+          description: `여러 서비스 클래스의 단위 테스트를 한 번에 생성합니다. 각 파일을 순차적으로 처리하며 진행 상황을 실시간으로 보고합니다.
+
+권장 사용법:
+1. 여러 서비스 파일의 경로를 배열로 전달
+2. 각 파일마다 Serena MCP 분석 결과를 함께 전달 (선택, 권장)
+3. 자동으로 모든 파일의 테스트를 생성하고 검증
+
+예시:
+service_paths: [
+  "olive-domain/src/main/kotlin/.../CommonServiceImpl.kt",
+  "olive-domain/src/main/kotlin/.../DisplayCornerService.kt"
+]`,
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project_root: {
+                type: 'string',
+                description: '프로젝트 루트 디렉토리 경로 (예: /Users/yb/Documents/dev/oliveyoung-discovery)',
+              },
+              service_paths: {
+                type: 'array',
+                items: {
+                  type: 'string',
+                },
+                description: '테스트할 서비스 파일들의 상대 경로 배열',
+              },
+              validate: {
+                type: 'boolean',
+                description: '테스트 생성 후 자동 검증 여부 (기본값: true)',
+                default: true,
+              },
+              max_retries: {
+                type: 'number',
+                description: '검증 실패 시 최대 재시도 횟수 (기본값: 3)',
+                default: 3,
+              },
+              continue_on_error: {
+                type: 'boolean',
+                description: '한 파일 실패 시 다음 파일 계속 처리 여부 (기본값: true)',
+                default: true,
+              },
+            },
+            required: ['project_root', 'service_paths'],
+          },
+        },
+        {
           name: 'validate_test',
           description: '기존 테스트 파일을 검증하고 자동으로 수정합니다. 컴파일 → 실행 → 수정 → 재검증 루프를 수행합니다.',
           inputSchema: {
@@ -234,6 +281,8 @@ Serena 없이도 동작하지만, 정확도가 낮아집니다(정규식 기반 
             return await this.handleGenerateUnitTest(args);
           case 'generate_integration_test':
             return await this.handleGenerateIntegrationTest(args);
+          case 'generate_batch_tests':
+            return await this.handleGenerateBatchTests(args);
           case 'validate_test':
             return await this.handleValidateTest(args);
           case 'analyze_service':
@@ -445,6 +494,117 @@ Serena 없이도 동작하지만, 정확도가 낮아집니다(정규식 기반 
       ...args,
       is_integration: true,
     });
+  }
+
+  /**
+   * 배치 테스트 생성 (여러 파일을 한 번에 처리)
+   */
+  async handleGenerateBatchTests(args) {
+    const {
+      project_root,
+      service_paths,
+      validate = true,
+      max_retries = 3,
+      continue_on_error = true,
+    } = args;
+
+    this.log('📦 배치 테스트 생성 시작', 'INFO');
+    this.log(`  - 프로젝트: ${project_root}`, 'INFO');
+    this.log(`  - 파일 수: ${service_paths.length}개`, 'INFO');
+    this.log('', 'INFO');
+
+    const results = [];
+    const startTime = Date.now();
+
+    for (let i = 0; i < service_paths.length; i++) {
+      const service_path = service_paths[i];
+      const current = i + 1;
+      const total = service_paths.length;
+
+      this.log(`\n[${ current}/${total}] 처리 중: ${service_path}`, 'INFO');
+      this.log('-'.repeat(80), 'INFO');
+
+      try {
+        // 개별 파일에 대해 generate_unit_test 호출
+        const result = await this.handleGenerateUnitTest({
+          project_root,
+          service_path,
+          validate,
+          max_retries,
+        });
+
+        results.push({
+          service_path,
+          status: 'success',
+          result: result.content[0].text,
+        });
+
+        this.log(`✅ [${current}/${total}] 완료: ${service_path}`, 'SUCCESS');
+      } catch (error) {
+        this.log(`❌ [${current}/${total}] 실패: ${service_path}`, 'ERROR');
+        this.log(`   에러: ${error.message}`, 'ERROR');
+
+        results.push({
+          service_path,
+          status: 'failed',
+          error: error.message,
+        });
+
+        if (!continue_on_error) {
+          this.log('\n⚠️  continue_on_error=false이므로 중단합니다.', 'WARN');
+          break;
+        }
+      }
+    }
+
+    const endTime = Date.now();
+    const duration = ((endTime - startTime) / 1000).toFixed(2);
+
+    // 결과 요약
+    const successCount = results.filter(r => r.status === 'success').length;
+    const failedCount = results.filter(r => r.status === 'failed').length;
+
+    let summary = '\n' + '='.repeat(80) + '\n';
+    summary += '📊 배치 테스트 생성 완료\n';
+    summary += '='.repeat(80) + '\n\n';
+    summary += `⏱️  소요 시간: ${duration}초\n`;
+    summary += `📝 전체 파일: ${service_paths.length}개\n`;
+    summary += `✅ 성공: ${successCount}개\n`;
+    summary += `❌ 실패: ${failedCount}개\n\n`;
+
+    if (successCount > 0) {
+      summary += '✅ 성공한 파일:\n';
+      results
+        .filter(r => r.status === 'success')
+        .forEach((r, idx) => {
+          summary += `   ${idx + 1}. ${r.service_path}\n`;
+        });
+      summary += '\n';
+    }
+
+    if (failedCount > 0) {
+      summary += '❌ 실패한 파일:\n';
+      results
+        .filter(r => r.status === 'failed')
+        .forEach((r, idx) => {
+          summary += `   ${idx + 1}. ${r.service_path}\n`;
+          summary += `      → ${r.error}\n`;
+        });
+      summary += '\n';
+    }
+
+    summary += '='.repeat(80) + '\n';
+
+    this.log(summary, 'INFO');
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: summary + '\n\n상세 결과:\n' + JSON.stringify(results, null, 2),
+        },
+      ],
+    };
   }
 
   /**
