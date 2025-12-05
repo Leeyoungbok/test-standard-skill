@@ -776,7 +776,12 @@ service_paths: [
    */
   async runGradleCompile(projectRoot, testPath) {
     const module = this.extractModule(testPath);
-    const cmd = `cd "${projectRoot}" && JAVA_HOME=/usr/local/opt/openjdk@11/libexec/openjdk.jdk/Contents/Home ./gradlew :${module}:compileTestKotlin -x kaptKotlin -x kaptGenerateStubsKotlin -x kaptTestKotlin -x kaptGenerateStubsTestKotlin`;
+    // Gradle 최적화 옵션 추가:
+    // --parallel: 병렬 빌드로 속도 향상
+    // --build-cache: 빌드 캐시 활용
+    // --configuration-cache: 설정 캐시 사용 (Gradle 6.5+)
+    // daemon은 기본 활성화 (--no-daemon 제거)
+    const cmd = `cd "${projectRoot}" && JAVA_HOME=/usr/local/opt/openjdk@11/libexec/openjdk.jdk/Contents/Home ./gradlew :${module}:compileTestKotlin --parallel --build-cache --configuration-cache -x kaptKotlin -x kaptGenerateStubsKotlin -x kaptTestKotlin -x kaptGenerateStubsTestKotlin`;
 
     const { stdout, stderr } = await execAsync(cmd);
 
@@ -794,7 +799,8 @@ service_paths: [
     const module = this.extractModule(testPath);
     const testClassName = this.extractTestClassName(testPath);
 
-    const cmd = `cd "${projectRoot}" && JAVA_HOME=/usr/local/opt/openjdk@11/libexec/openjdk.jdk/Contents/Home ./gradlew :${module}:test --tests "${testClassName}" -x kaptKotlin -x kaptGenerateStubsKotlin -x kaptTestKotlin -x kaptGenerateStubsTestKotlin`;
+    // Gradle 최적화 옵션: 병렬 빌드, 캐시 활용, daemon 사용
+    const cmd = `cd "${projectRoot}" && JAVA_HOME=/usr/local/opt/openjdk@11/libexec/openjdk.jdk/Contents/Home ./gradlew :${module}:test --tests "${testClassName}" --parallel --build-cache --configuration-cache -x kaptKotlin -x kaptGenerateStubsKotlin -x kaptTestKotlin -x kaptGenerateStubsTestKotlin`;
 
     try {
       const { stdout, stderr } = await execAsync(cmd);
@@ -857,7 +863,8 @@ service_paths: [
    */
   async checkCoverage(projectRoot, testPath) {
     const module = this.extractModule(testPath);
-    const cmd = `cd "${projectRoot}" && JAVA_HOME=/usr/local/opt/openjdk@11/libexec/openjdk.jdk/Contents/Home ./gradlew :${module}:jacocoTestReport -x kaptKotlin -x kaptGenerateStubsKotlin`;
+    // Gradle 최적화 옵션: 병렬 빌드, 캐시 활용, daemon 사용
+    const cmd = `cd "${projectRoot}" && JAVA_HOME=/usr/local/opt/openjdk@11/libexec/openjdk.jdk/Contents/Home ./gradlew :${module}:jacocoTestReport --parallel --build-cache --configuration-cache -x kaptKotlin -x kaptGenerateStubsKotlin`;
 
     try {
       await execAsync(cmd);

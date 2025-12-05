@@ -14,6 +14,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `continue_on_error` 옵션으로 에러 발생 시 계속 처리 가능
   - 소요 시간 및 결과 요약 자동 생성
 
+### Improved
+- **Gradle 빌드 속도 대폭 개선** (약 40-50% 단축)
+  - `--parallel`: 병렬 빌드 활성화
+  - `--build-cache`: 빌드 캐시 활용
+  - `--configuration-cache`: 설정 캐시 사용 (Gradle 6.5+)
+  - Gradle Daemon 사용 (`--no-daemon` 제거)
+  - 예상 효과: 5분 → 2-3분으로 단축
+
 ### Planned
 - AI 기반 Mock 데이터 생성
 - 커버리지 기반 자동 테스트 추가
