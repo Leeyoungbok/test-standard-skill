@@ -41,14 +41,14 @@ async function execWithTimeout(cmd, timeout = 600000) {
 }
 
 /**
- * Oliveyoung Test Standard MCP Server
- * 테스트 코드 자동 생성 및 자가 검증 루프를 제공하는 MCP 서버
+ * Oliveyoung Test Standard MCP Skill
+ * 테스트 코드 자동 생성 및 자가 검증 루프를 제공하는 MCP 스킬
  */
-class TestStandardMCPServer {
+class TestStandardMCPSkill {
   constructor() {
     this.server = new Server(
       {
-        name: 'test-standard-mcp',
+        name: 'test-standard-skill',
         version: '1.0.0',
       },
       {
@@ -1480,10 +1480,10 @@ class {{ServiceName}}Test {
   async run() {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
-    console.error('Oliveyoung Test Standard MCP Server running on stdio');
+    console.error('Oliveyoung Test Standard MCP Skill running on stdio');
   }
 }
 
 // Start the server
-const server = new TestStandardMCPServer();
+const server = new TestStandardMCPSkill();
 server.run().catch(console.error);

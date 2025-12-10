@@ -1,11 +1,11 @@
 {
-  "name": "@oliveyoung/test-standard-mcp",
+  "name": "@oliveyoung/test-standard-skill",
   "version": "1.2.0",
-  "description": "MCP server for automated test code generation and validation with self-verification loop. Requires Serena MCP (https://github.com/oraios/serena) for code analysis.",
+  "description": "MCP skill for automated test code generation and validation with self-verification loop. Requires Serena MCP (https://github.com/oraios/serena) for code analysis.",
   "main": "index.js",
   "type": "module",
   "bin": {
-    "test-standard-mcp": "./index.js"
+    "test-standard-skill": "./index.js"
   },
   "files": [
     "index.js",

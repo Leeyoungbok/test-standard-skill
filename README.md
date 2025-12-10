@@ -1,6 +1,6 @@
-# Oliveyoung Test Standard MCP
+# Oliveyoung Test Standard Skill
 
-> 테스트 코드 자동 생성 및 자가 검증 루프를 제공하는 MCP 서버
+> 테스트 코드 자동 생성 및 자가 검증 루프를 제공하는 MCP 스킬
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
@@ -12,13 +12,13 @@
 **단 한 줄로 설치:**
 
 ```bash
-git clone https://github.com/Leeyoungbok/test-standard-mcp.git && cd test-standard-mcp && ./install.sh
+git clone https://github.com/Leeyoungbok/test-standard-skill.git && cd test-standard-skill && ./install.sh
 ```
 
 **또는 원격 설치:**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Leeyoungbok/test-standard-mcp/main/remote-install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Leeyoungbok/test-standard-skill/main/remote-install.sh | bash
 ```
 
 설치 후 **MCP 클라이언트를 재시작**하면 바로 사용 가능합니다!
@@ -79,8 +79,8 @@ AI 어시스턴트: generate_batch_tests 도구를 사용하겠습니다...
 
 ## 소개
 
-**Oliveyoung Test Standard MCP**는 Kotlin/Spring Boot 프로젝트의 테스트 코드 작성을 자동화하고,
-자가 검증 루프를 통해 완벽한 테스트 코드를 생성하는 Model Context Protocol (MCP) 서버입니다.
+**Oliveyoung Test Standard Skill**은 Kotlin/Spring Boot 프로젝트의 테스트 코드 작성을 자동화하고,
+자가 검증 루프를 통해 완벽한 테스트 코드를 생성하는 Model Context Protocol (MCP) 스킬입니다.
 
 ### 왜 이 도구가 필요한가?
 
