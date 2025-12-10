@@ -135,14 +135,14 @@ class HomePersonalV2ServiceImplTest {
 ## [1.1.0] - 2025-12-03
 
 ### Added
-- ✨ **Serena MCP 통합**: MCP 클라이언트를 통한 정확한 코드 분석
+- ✨ **Serena MCP 통합**: AI 클라이언트를 통한 정확한 코드 분석
   - `serena_analysis` 파라미터 추가 (generate_unit_test)
   - LSP 기반 정확한 타입 분석 지원
   - 정규식 fallback 유지 (Serena 없이도 사용 가능)
 - 🎯 `parseSerenaAnalysis()`: Serena MCP 결과를 내부 형식으로 변환
 - 📖 **README 업데이트**: Serena MCP 워크플로우 및 비교표 추가
 - 📦 **Standards 폴더 NPM 패키지 포함**: 테스트 표준 문서 자동 배포
-- 🌐 **범용 MCP 클라이언트 지원**: Claude Code, Amazon Q, VS Code 등 모든 MCP 클라이언트 호환
+- 🌐 **범용 AI 클라이언트 지원**: Claude Code, Amazon Q, VS Code 등 모든 AI 클라이언트 호환
 
 ### Improved
 - 🔧 Tool description에 Serena MCP 권장 워크플로우 명시
@@ -150,8 +150,8 @@ class HomePersonalV2ServiceImplTest {
 - 🚀 컴파일 에러 0건 (Serena 사용 시)
 
 ### Technical Details
-- **아키텍처**: MCP 서버 간 통신은 **MCP 클라이언트**가 orchestration 수행
-- **워크플로우**: Serena 분석 → MCP 클라이언트 전달 → Test Standard 생성
+- **아키텍처**: Skill 간 통신은 **AI 클라이언트**가 orchestration 수행
+- **워크플로우**: Serena 분석 → AI 클라이언트 전달 → Test Standard 생성
 - **호환성**:
   - 모든 MCP 프로토콜 호환 클라이언트 지원
   - Serena 없이도 정규식 기반으로 동작 (degraded mode)
@@ -186,12 +186,12 @@ class HomePersonalV2ServiceImplTest {
 - **필수**: Serena MCP 0.1.4 이상 (코드 분석용)
 - **필수**: Node.js 18.0.0 이상
 - **필수**: Java 11 (Gradle 빌드용)
-- **권장**: Claude Desktop (MCP 클라이언트)
+- **권장**: Claude Desktop (AI 클라이언트)
 
 ### Technical Details
 - **언어**: JavaScript (ES Modules)
 - **MCP SDK**: @modelcontextprotocol/sdk ^0.5.0
-- **아키텍처**: 단일 파일 MCP 서버 (index.js, 700+ 라인)
+- **아키텍처**: 단일 파일 Skill (index.js, 700+ 라인)
 - **플랫폼**: macOS, Linux (Windows 미지원)
 
 ### Known Limitations

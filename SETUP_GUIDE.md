@@ -1,12 +1,12 @@
 # Test Standard MCP 설치 가이드
 
-이 문서는 Test Standard MCP를 다양한 MCP 클라이언트에서 사용하기 위한 상세 설치 가이드입니다.
+이 문서는 Test Standard MCP를 다양한 AI 클라이언트에서 사용하기 위한 상세 설치 가이드입니다.
 
 ## 목차
 
 - [사전 준비](#사전-준비)
 - [Git 클론 설치](#git-클론-설치)
-- [MCP 클라이언트별 설정](#mcp-클라이언트별-설정)
+- [AI 클라이언트별 설정](#mcp-클라이언트별-설정)
   - [Claude Desktop](#claude-desktop)
   - [Kiro CLI (AWS)](#kiro-cli-aws)
   - [VS Code](#vs-code)
@@ -96,7 +96,7 @@ cd test-standard-mcp
 # 2. 의존성 설치
 npm install
 
-# 3. 아래 "MCP 클라이언트별 설정" 섹션 참고하여 수동 설정
+# 3. 아래 "AI 클라이언트별 설정" 섹션 참고하여 수동 설정
 ```
 
 ---
@@ -117,7 +117,7 @@ npm install
 
 ---
 
-## MCP 클라이언트별 설정 (수동 설치 시)
+## AI 클라이언트별 설정 (수동 설치 시)
 
 자동 설치 스크립트를 사용하지 않는 경우에만 아래 섹션을 참고하세요.
 
@@ -141,14 +141,14 @@ npm install
 ### 3. 설치 확인
 
 ```bash
-# MCP 서버 실행 테스트
+# Skill 실행 테스트
 node index.js
 # Ctrl+C로 종료
 ```
 
 ---
 
-## MCP 클라이언트별 설정
+## AI 클라이언트별 설정
 
 ### Claude Desktop
 
@@ -291,7 +291,7 @@ VS Code 설정 (`settings.json`)에 추가:
 
 #### 3. VS Code 재시작
 
-VS Code를 재시작하여 MCP 서버를 활성화합니다.
+VS Code를 재시작하여 Skill를 활성화합니다.
 
 ---
 
@@ -299,7 +299,7 @@ VS Code를 재시작하여 MCP 서버를 활성화합니다.
 
 ### 도구 목록 확인
 
-MCP 클라이언트에서 다음과 같이 요청:
+AI 클라이언트에서 다음과 같이 요청:
 
 ```
 test-standard-mcp에서 사용 가능한 도구를 알려줘
@@ -351,7 +351,7 @@ cd /Users/yb/Documents/dev/test-standard-mcp
 npm install
 ```
 
-### 3. MCP 서버가 연결되지 않음
+### 3. Skill가 연결되지 않음
 
 **원인**: 설정 파일의 경로가 잘못됨
 
