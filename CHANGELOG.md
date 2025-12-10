@@ -222,7 +222,7 @@ Initial release with core functionality
 버그 리포트, 기능 요청, Pull Request를 환영합니다!
 
 **보고 방법:**
-- GitHub Issues: https://github.com/oliveyoung/test-standard-mcp/issues
+- GitHub Issues: https://github.com/oliveyoung/test-standard-skill/issues
 - Email: test-team@oliveyoung.co.kr
 
 **개발 가이드:**

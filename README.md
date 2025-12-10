@@ -405,14 +405,14 @@ JaCoCo 리포트 자동 생성 및 커버리지 확인:
 **단 한 줄로 설치 완료:**
 
 ```bash
-git clone https://github.com/Leeyoungbok/test-standard-mcp.git && cd test-standard-mcp && ./install.sh
+git clone https://github.com/Leeyoungbok/test-standard-skill.git && cd test-standard-skill && ./install.sh
 ```
 
 또는 **curl을 사용한 원격 설치** (향후 지원):
 
 ```bash
 # GitHub에서 직접 다운로드 + 설치
-curl -fsSL https://raw.githubusercontent.com/Leeyoungbok/test-standard-mcp/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Leeyoungbok/test-standard-skill/main/install.sh | bash
 ```
 
 ### 빠른 설치 (권장)
@@ -420,8 +420,8 @@ curl -fsSL https://raw.githubusercontent.com/Leeyoungbok/test-standard-mcp/main/
 **단 3줄로 설치 완료:**
 
 ```bash
-git clone https://github.com/Leeyoungbok/test-standard-mcp.git
-cd test-standard-mcp
+git clone https://github.com/Leeyoungbok/test-standard-skill.git
+cd test-standard-skill
 ./install.sh
 ```
 
@@ -461,8 +461,8 @@ pip install -e .
 
 ```bash
 # 1. 저장소 클론
-git clone https://github.com/Leeyoungbok/test-standard-mcp.git
-cd test-standard-mcp
+git clone https://github.com/Leeyoungbok/test-standard-skill.git
+cd test-standard-skill
 
 # 2. 자동 설치 스크립트 실행
 ./install.sh
@@ -478,8 +478,8 @@ cd test-standard-mcp
 
 ```bash
 # 1. 저장소 클론
-git clone https://github.com/Leeyoungbok/test-standard-mcp.git
-cd test-standard-mcp
+git clone https://github.com/Leeyoungbok/test-standard-skill.git
+cd test-standard-skill
 
 # 2. 의존성 설치
 npm install
@@ -491,7 +491,7 @@ npm install
 
 ```bash
 # NPM 패키지로 배포 후 사용 가능
-npm install -g @oliveyoung/test-standard-mcp
+npm install -g @oliveyoung/test-standard-skill
 ```
 
 ### AI 클라이언트별 설정
@@ -503,9 +503,9 @@ npm install -g @oliveyoung/test-standard-mcp
 ```json
 {
   "mcpServers": {
-    "test-standard-mcp": {
+    "test-standard-skill": {
       "command": "node",
-      "args": ["/path/to/test-standard-mcp/index.js"]
+      "args": ["/path/to/test-standard-skill/index.js"]
     }
   }
 }
@@ -518,9 +518,9 @@ npm install -g @oliveyoung/test-standard-mcp
 ```json
 {
   "mcpServers": {
-    "test-standard-mcp": {
+    "test-standard-skill": {
       "command": "node",
-      "args": ["/path/to/test-standard-mcp/index.js"]
+      "args": ["/path/to/test-standard-skill/index.js"]
     }
   }
 }
@@ -533,9 +533,9 @@ VS Code 설정 (`settings.json`)에 추가:
 ```json
 {
   "mcp.servers": {
-    "test-standard-mcp": {
+    "test-standard-skill": {
       "command": "node",
-      "args": ["/path/to/test-standard-mcp/index.js"]
+      "args": ["/path/to/test-standard-skill/index.js"]
     }
   }
 }
@@ -565,9 +565,9 @@ Cursor 설정에서 Skill 추가 (Claude Desktop과 동일한 설정 파일 사�
 ```json
 {
   "mcpServers": {
-    "test-standard-mcp": {
+    "test-standard-skill": {
       "command": "node",
-      "args": ["~/Documents/dev/test-standard-mcp/index.js"],
+      "args": ["~/Documents/dev/test-standard-skill/index.js"],
       "env": {},
       "timeout": 120000,
       "disabled": false,
@@ -590,9 +590,9 @@ kiro-cli chat
 ```json
 {
   "mcpServers": {
-    "test-standard-mcp": {
+    "test-standard-skill": {
       "command": "node",
-      "args": ["~/Documents/dev/test-standard-mcp/index.js"]
+      "args": ["~/Documents/dev/test-standard-skill/index.js"]
     }
   }
 }
@@ -607,9 +607,9 @@ kiro-cli chat
 ```json
 {
   "mcp.servers": {
-    "test-standard-mcp": {
+    "test-standard-skill": {
       "command": "node",
-      "args": ["~/Documents/dev/test-standard-mcp/index.js"]
+      "args": ["~/Documents/dev/test-standard-skill/index.js"]
     }
   }
 }
@@ -624,11 +624,11 @@ MCP 프로토콜을 지원하는 모든 클라이언트에서 사용 가능합�
 ```json
 {
   "command": "node",
-  "args": ["~/Documents/dev/test-standard-mcp/index.js"]
+  "args": ["~/Documents/dev/test-standard-skill/index.js"]
 }
 ```
 
-**주의**: `~/Documents/dev/test-standard-mcp`를 실제 클론한 경로로 변경하세요
+**주의**: `~/Documents/dev/test-standard-skill`를 실제 클론한 경로로 변경하세요
 
 ---
 
@@ -717,10 +717,10 @@ Skill와 직접 통신:
 
 ```bash
 # 서비스 분석
-echo '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"analyze_service","arguments":{"project_root":"/Users/yb/Documents/dev/oliveyoung-discovery","service_path":"olive-domain/src/main/kotlin/com/oliveyoung/domain/service/common/CommonServiceImpl.kt"}}}' | test-standard-mcp
+echo '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"analyze_service","arguments":{"project_root":"/Users/yb/Documents/dev/oliveyoung-discovery","service_path":"olive-domain/src/main/kotlin/com/oliveyoung/domain/service/common/CommonServiceImpl.kt"}}}' | test-standard-skill
 
 # 테스트 생성
-echo '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"generate_unit_test","arguments":{"project_root":"/Users/yb/Documents/dev/oliveyoung-discovery","service_path":"olive-domain/src/main/kotlin/com/oliveyoung/domain/service/common/CommonServiceImpl.kt","validate":true,"max_retries":3}}}' | test-standard-mcp
+echo '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"generate_unit_test","arguments":{"project_root":"/Users/yb/Documents/dev/oliveyoung-discovery","service_path":"olive-domain/src/main/kotlin/com/oliveyoung/domain/service/common/CommonServiceImpl.kt","validate":true,"max_retries":3}}}' | test-standard-skill
 ```
 
 ---
@@ -957,8 +957,8 @@ AI 클라이언트: [validate_test 도구 실행 (check_coverage: true)]
 ### 개발 환경 설정
 
 ```bash
-git clone https://github.com/oliveyoung/test-standard-mcp.git
-cd test-standard-mcp
+git clone https://github.com/oliveyoung/test-standard-skill.git
+cd test-standard-skill
 npm install
 npm test
 ```
@@ -973,9 +973,9 @@ npm start
 # claude_desktop_config.json에 로컬 경로 설정
 {
   "mcpServers": {
-    "test-standard-mcp": {
+    "test-standard-skill": {
       "command": "node",
-      "args": ["/path/to/local/test-standard-mcp/index.js"]
+      "args": ["/path/to/local/test-standard-skill/index.js"]
     }
   }
 }
@@ -1011,7 +1011,7 @@ SOFTWARE.
 
 ## 문의
 
-- **이슈**: [GitHub Issues](https://github.com/oliveyoung/test-standard-mcp/issues)
+- **이슈**: [GitHub Issues](https://github.com/oliveyoung/test-standard-skill/issues)
 - **이메일**: test-team@oliveyoung.co.kr
 
 ---
@@ -1019,4 +1019,4 @@ SOFTWARE.
 **마지막 업데이트**: 2025-12-03
 **버전**: 1.0.0
 **상태**: 프로토타입 (Production Ready)
-# test-standard-mcp
+# test-standard-skill

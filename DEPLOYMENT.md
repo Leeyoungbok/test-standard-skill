@@ -141,9 +141,9 @@ pip install -e . --upgrade
         "SERENA_CONFIG": "~/.serena/serena_config.yml"
       }
     },
-    "test-standard-mcp": {
+    "test-standard-skill": {
       "command": "node",
-      "args": ["/Users/yb/test-standard-mcp/index.js"]
+      "args": ["/Users/yb/test-standard-skill/index.js"]
     }
   }
 }
@@ -163,7 +163,7 @@ Claude: 네! Serena MCP의 다음 도구들을 사용할 수 있습니다:
 - ...
 
 # Test Standard MCP 도구도 확인
-사용자: test-standard-mcp 도구도 사용할 수 있어?
+사용자: test-standard-skill 도구도 사용할 수 있어?
 
 Claude: 네! 다음 도구들을 사용할 수 있습니다:
 - generate_unit_test
@@ -188,12 +188,12 @@ npm login
 #### package.json 확인
 ```json
 {
-  "name": "@oliveyoung/test-standard-mcp",
+  "name": "@oliveyoung/test-standard-skill",
   "version": "1.0.0",
   "description": "...",
   "main": "index.js",
   "bin": {
-    "test-standard-mcp": "./index.js"
+    "test-standard-skill": "./index.js"
   }
 }
 ```
@@ -201,7 +201,7 @@ npm login
 ### 2. 의존성 설치
 
 ```bash
-cd ~/test-standard-mcp
+cd ~/test-standard-skill
 npm install
 ```
 
@@ -234,9 +234,9 @@ Oliveyoung Test Standard MCP Server running on stdio
 ```json
 {
   "mcpServers": {
-    "test-standard-mcp-local": {
+    "test-standard-skill-local": {
       "command": "node",
-      "args": ["/Users/yb/test-standard-mcp/index.js"]
+      "args": ["/Users/yb/test-standard-skill/index.js"]
     }
   }
 }
@@ -244,7 +244,7 @@ Oliveyoung Test Standard MCP Server running on stdio
 
 Claude Desktop 재시작 후, MCP 도구가 사용 가능한지 확인:
 ```
-사용자: test-standard-mcp의 도구 목록을 보여줘
+사용자: test-standard-skill의 도구 목록을 보여줘
 
 Claude: 다음 도구들이 사용 가능합니다:
 - generate_unit_test
@@ -264,7 +264,7 @@ Claude: 다음 도구들이 사용 가능합니다:
 
 #### 배포 명령
 ```bash
-cd ~/test-standard-mcp
+cd ~/test-standard-skill
 
 # 배포
 npm publish --access public
@@ -275,7 +275,7 @@ npm publish --access public
 개인 계정으로 배포하려면:
 ```bash
 # package.json에서 name 변경
-# "@oliveyoung/test-standard-mcp" → "@your-username/test-standard-mcp"
+# "@oliveyoung/test-standard-skill" → "@your-username/test-standard-skill"
 
 npm publish --access public
 ```
@@ -284,14 +284,14 @@ npm publish --access public
 
 ```bash
 # 전역 설치
-npm install -g @oliveyoung/test-standard-mcp
+npm install -g @oliveyoung/test-standard-skill
 
 # 설치 확인
-which test-standard-mcp
-# /usr/local/bin/test-standard-mcp
+which test-standard-skill
+# /usr/local/bin/test-standard-skill
 
 # 실행 테스트
-test-standard-mcp
+test-standard-skill
 # Oliveyoung Test Standard MCP Server running on stdio
 ```
 
@@ -306,8 +306,8 @@ test-standard-mcp
 ```json
 {
   "mcpServers": {
-    "test-standard-mcp": {
-      "command": "test-standard-mcp"
+    "test-standard-skill": {
+      "command": "test-standard-skill"
     }
   }
 }
@@ -318,9 +318,9 @@ test-standard-mcp
 ```json
 {
   "mcpServers": {
-    "test-standard-mcp": {
+    "test-standard-skill": {
       "command": "node",
-      "args": ["/Users/yb/test-standard-mcp/index.js"]
+      "args": ["/Users/yb/test-standard-skill/index.js"]
     }
   }
 }
@@ -413,7 +413,7 @@ Claude: validate_test 도구를 사용하겠습니다.
 
 **해결 방법:**
 ```bash
-chmod +x ~/test-standard-mcp/index.js
+chmod +x ~/test-standard-skill/index.js
 ```
 
 ### 문제 3: MCP SDK 설치 오류
@@ -422,7 +422,7 @@ chmod +x ~/test-standard-mcp/index.js
 
 **해결 방법:**
 ```bash
-cd ~/test-standard-mcp
+cd ~/test-standard-skill
 npm install @modelcontextprotocol/sdk
 ```
 
@@ -497,7 +497,7 @@ echo $JAVA_HOME
 
 5. **사용자 업데이트 안내**
    ```bash
-   npm update -g @oliveyoung/test-standard-mcp
+   npm update -g @oliveyoung/test-standard-skill
    ```
 
 ---
@@ -507,7 +507,7 @@ echo $JAVA_HOME
 배포 후 다운로드 수 확인:
 
 ```bash
-npm info @oliveyoung/test-standard-mcp
+npm info @oliveyoung/test-standard-skill
 ```
 
 ---
@@ -518,8 +518,8 @@ npm info @oliveyoung/test-standard-mcp
 
 1. **저장소 클론**
    ```bash
-   git clone https://github.com/oliveyoung/test-standard-mcp.git
-   cd test-standard-mcp
+   git clone https://github.com/oliveyoung/test-standard-skill.git
+   cd test-standard-skill
    ```
 
 2. **의존성 설치**

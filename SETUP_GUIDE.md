@@ -60,8 +60,8 @@ pip install -e .
 
 ```bash
 # 1. 저장소 클론
-git clone https://github.com/Leeyoungbok/test-standard-mcp.git
-cd test-standard-mcp
+git clone https://github.com/Leeyoungbok/test-standard-skill.git
+cd test-standard-skill
 
 # 2. 자동 설치 스크립트 실행
 ./install.sh
@@ -90,8 +90,8 @@ kiro-cli chat
 
 ```bash
 # 1. 저장소 클론
-git clone https://github.com/Leeyoungbok/test-standard-mcp.git
-cd test-standard-mcp
+git clone https://github.com/Leeyoungbok/test-standard-skill.git
+cd test-standard-skill
 
 # 2. 의존성 설치
 npm install
@@ -128,8 +128,8 @@ npm install
 cd ~/Documents/dev/
 
 # 저장소 클론
-git clone https://github.com/Leeyoungbok/test-standard-mcp.git
-cd test-standard-mcp
+git clone https://github.com/Leeyoungbok/test-standard-skill.git
+cd test-standard-skill
 ```
 
 ### 2. 의존성 설치
@@ -177,16 +177,16 @@ open ~/Library/Application\ Support/Claude/claude_desktop_config.json
 ```json
 {
   "mcpServers": {
-    "test-standard-mcp": {
+    "test-standard-skill": {
       "command": "node",
-      "args": ["~/path/to/test-standard-mcp/index.js"]
+      "args": ["~/path/to/test-standard-skill/index.js"]
     }
   }
 }
 ```
 
-**주의**: `~/path/to/test-standard-mcp`를 실제 클론한 경로로 변경하세요.
-예: `~/Documents/dev/test-standard-mcp/index.js`
+**주의**: `~/path/to/test-standard-skill`를 실제 클론한 경로로 변경하세요.
+예: `~/Documents/dev/test-standard-skill/index.js`
 
 #### 3. Claude Desktop 재시작
 
@@ -197,7 +197,7 @@ Claude Desktop을 완전히 종료하고 다시 시작합니다.
 Claude Desktop에서 다음과 같이 요청:
 
 ```
-test-standard-mcp 도구가 사용 가능한지 확인해줘
+test-standard-skill 도구가 사용 가능한지 확인해줘
 ```
 
 ---
@@ -219,7 +219,7 @@ open ~/.kiro/settings/mcp.json
 nano ~/.kiro/settings/mcp.json
 ```
 
-기존 내용에 `test-standard-mcp` 추가:
+기존 내용에 `test-standard-skill` 추가:
 
 ```json
 {
@@ -232,9 +232,9 @@ nano ~/.kiro/settings/mcp.json
       "disabled": false,
       "disabledTools": []
     },
-    "test-standard-mcp": {
+    "test-standard-skill": {
       "command": "node",
-      "args": ["~/Documents/dev/test-standard-mcp/index.js"],
+      "args": ["~/Documents/dev/test-standard-skill/index.js"],
       "env": {},
       "timeout": 120000,
       "disabled": false,
@@ -245,7 +245,7 @@ nano ~/.kiro/settings/mcp.json
 ```
 
 **주의**: 
-- `~/Documents/dev/test-standard-mcp`를 실제 클론한 경로로 변경하세요
+- `~/Documents/dev/test-standard-skill`를 실제 클론한 경로로 변경하세요
 - 기존 `mcpServers` 내용을 유지하면서 추가하세요
 
 #### 3. Kiro CLI 재시작
@@ -263,7 +263,7 @@ kiro-cli chat
 Kiro CLI에서 다음과 같이 요청:
 
 ```
-test-standard-mcp 도구를 사용해서 사용 가능한 도구 목록을 보여줘
+test-standard-skill 도구를 사용해서 사용 가능한 도구 목록을 보여줘
 ```
 
 ---
@@ -281,9 +281,9 @@ VS Code 설정 (`settings.json`)에 추가:
 ```json
 {
   "mcp.servers": {
-    "test-standard-mcp": {
+    "test-standard-skill": {
       "command": "node",
-      "args": ["~/Documents/dev/test-standard-mcp/index.js"]
+      "args": ["~/Documents/dev/test-standard-skill/index.js"]
     }
   }
 }
@@ -302,7 +302,7 @@ VS Code를 재시작하여 Skill를 활성화합니다.
 AI 클라이언트에서 다음과 같이 요청:
 
 ```
-test-standard-mcp에서 사용 가능한 도구를 알려줘
+test-standard-skill에서 사용 가능한 도구를 알려줘
 ```
 
 **예상 응답:**
@@ -347,7 +347,7 @@ brew install node
 
 **해결**:
 ```bash
-cd /Users/yb/Documents/dev/test-standard-mcp
+cd /Users/yb/Documents/dev/test-standard-skill
 npm install
 ```
 
@@ -358,11 +358,11 @@ npm install
 **해결**:
 ```bash
 # 실제 경로 확인
-cd ~/Documents/dev/test-standard-mcp
+cd ~/Documents/dev/test-standard-skill
 pwd
 
 # 설정 파일에서 ~ 기준 상대 경로 사용
-# 예: ~/Documents/dev/test-standard-mcp/index.js
+# 예: ~/Documents/dev/test-standard-skill/index.js
 ```
 
 ### 4. "Permission denied"
@@ -371,7 +371,7 @@ pwd
 
 **해결**:
 ```bash
-chmod +x ~/Documents/dev/test-standard-mcp/index.js
+chmod +x ~/Documents/dev/test-standard-skill/index.js
 ```
 
 ### 5. Kiro CLI에서 도구가 보이지 않음
@@ -404,7 +404,7 @@ Serena MCP 없이 사용하려면 설정에서 제외하고 Test Standard MCP만
 - [README.md](./README.md) - 전체 문서
 - [DEPLOYMENT.md](./DEPLOYMENT.md) - 배포 가이드
 - [TEST_STANDARDS.md](./standards/TEST_STANDARDS.md) - 테스트 표준
-- [GitHub Issues](https://github.com/Leeyoungbok/test-standard-mcp/issues) - 문제 보고
+- [GitHub Issues](https://github.com/Leeyoungbok/test-standard-skill/issues) - 문제 보고
 
 ---
 

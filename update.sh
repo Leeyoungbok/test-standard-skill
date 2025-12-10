@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🔄 test-standard-mcp 업데이트 중..."
+echo "🔄 test-standard-skill 업데이트 중..."
 
 # 현재 디렉토리 저장
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"

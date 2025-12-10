@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Test Standard MCP 원격 설치 스크립트
-# Usage: curl -fsSL https://raw.githubusercontent.com/Leeyoungbok/test-standard-mcp/main/remote-install.sh | bash
+# Usage: curl -fsSL https://raw.githubusercontent.com/Leeyoungbok/test-standard-skill/main/remote-install.sh | bash
 
 set -e
 
@@ -9,8 +9,8 @@ echo "🚀 Test Standard MCP 원격 설치를 시작합니다..."
 echo ""
 
 # 설치 디렉토리
-INSTALL_DIR="$HOME/.test-standard-mcp"
-REPO_URL="https://github.com/Leeyoungbok/test-standard-mcp.git"
+INSTALL_DIR="$HOME/.test-standard-skill"
+REPO_URL="https://github.com/Leeyoungbok/test-standard-skill.git"
 CONFIG_FILE="$HOME/Library/Application Support/Claude/claude_desktop_config.json"
 
 # Node.js 확인
@@ -66,7 +66,7 @@ if [ ! -f "$CONFIG_FILE" ]; then
     echo ""
     echo '{'
     echo '  "mcpServers": {'
-    echo '    "test-standard-mcp": {'
+    echo '    "test-standard-skill": {'
     echo '      "command": "node",'
     echo "      \"args\": [\"$INSTALL_DIR/index.js\"]"
     echo '    }'
@@ -87,7 +87,7 @@ if ! command -v jq &> /dev/null; then
     echo ""
     echo "파일: $CONFIG_FILE (Claude Desktop)"
     echo ""
-    echo '"test-standard-mcp": {'
+    echo '"test-standard-skill": {'
     echo '  "command": "node",'
     echo "  \"args\": [\"$INSTALL_DIR/index.js\"]"
     echo '}'
@@ -103,9 +103,9 @@ if ! jq -e '.mcpServers' "$CONFIG_FILE" > /dev/null 2>&1; then
     mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
 fi
 
-# test-standard-mcp 추가/업데이트
+# test-standard-skill 추가/업데이트
 jq --arg path "$INSTALL_DIR/index.js" \
-   '.mcpServers["test-standard-mcp"] = {
+   '.mcpServers["test-standard-skill"] = {
       "command": "node",
       "args": [$path]
     }' "$CONFIG_FILE" > "$CONFIG_FILE.tmp"
@@ -125,9 +125,9 @@ echo "   - Amazon Q: IDE 재시작"
 echo "   - VS Code: Reload Window (Cmd+Shift+P → Reload Window)"
 echo ""
 echo "2. 새 대화에서 다음과 같이 테스트하세요:"
-echo '   사용자: "test-standard-mcp 도구를 사용할 수 있어?"'
+echo '   사용자: "test-standard-skill 도구를 사용할 수 있어?"'
 echo ""
-echo "📚 사용 가이드: https://github.com/Leeyoungbok/test-standard-mcp"
+echo "📚 사용 가이드: https://github.com/Leeyoungbok/test-standard-skill"
 echo ""
 echo "⚠️  참고: Serena MCP도 함께 설치되어 있어야 합니다."
 echo "   Serena 설치: https://github.com/oraios/serena"
